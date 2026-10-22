@@ -43,6 +43,10 @@ const config::Boolean &GetSearchResultBackgroundCleanup();
 /// suspended after fork started
 config::Number &GetMaxWorkerSuspensionSecs();
 
+/// Return the name the server knows the CONFIG command by ("CONFIG" unless it
+/// was hidden with rename-command)
+const config::String &GetConfigCommandName();
+
 /// Return an immutable reference to the "use-coordinator" flag
 const config::Boolean &GetUseCoordinator();
 

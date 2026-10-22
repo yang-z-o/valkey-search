@@ -1140,8 +1140,11 @@ void ValkeySearch::OnForkChildCallback(ValkeyModuleCtx *ctx,
 
 absl::StatusOr<std::string> GetConfigGetReply(ValkeyModuleCtx *ctx,
                                               const char *config) {
+  // The server may have hidden CONFIG with rename-command, see
+  // options::GetConfigCommandName().
+  const std::string config_command = options::GetConfigCommandName().GetValue();
   auto reply = vmsdk::UniquePtrValkeyCallReply(
-      ValkeyModule_Call(ctx, "CONFIG", "cc", "GET", config));
+      ValkeyModule_Call(ctx, config_command.c_str(), "cc", "GET", config));
   if (reply == nullptr) {
     return absl::InternalError(
         absl::StrFormat("Failed to get config: %s", config));

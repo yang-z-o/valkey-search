@@ -168,6 +168,19 @@ static auto use_coordinator = config::BooleanBuilder(kUseCoordinator, false)
                                   .Hidden()  // can only be set during start-up
                                   .Build();
 
+/// Name of the CONFIG command, for servers that hide it with rename-command.
+/// The module cannot discover the new name itself, so it has to be passed in.
+constexpr absl::string_view kConfigCommandName{"config-command-name"};
+static auto config_command_name =
+    config::StringBuilder(kConfigCommandName, "CONFIG")
+        .WithValidationCallback([](const std::string &value) {
+          return value.empty() ? absl::InvalidArgumentError(
+                                     "config-command-name cannot be empty")
+                               : absl::OkStatus();
+        })
+        .Hidden()  // can only be set during start-up
+        .Build();
+
 // Enable vector sharing
 constexpr absl::string_view kEnableVectorSharing{"enable-vector-sharing"};
 static auto enable_vector_sharing =
@@ -646,6 +659,10 @@ vmsdk::config::Number &GetMaxWorkerSuspensionSecs() {
   return max_worker_suspension_secs;
 }
 
+const vmsdk::config::String &GetConfigCommandName() {
+  return dynamic_cast<const vmsdk::config::String &>(*config_command_name);
+}
+
 const vmsdk::config::Boolean &GetUseCoordinator() {
   return dynamic_cast<const vmsdk::config::Boolean &>(*use_coordinator);
 }
@@ -689,6 +706,7 @@ config::Boolean &GetHNSWValidationEnableMutable() {
 
 absl::Status Reset() {
   VMSDK_RETURN_IF_ERROR(use_coordinator->SetValue(false));
+  VMSDK_RETURN_IF_ERROR(config_command_name->SetValue("CONFIG"));
   VMSDK_RETURN_IF_ERROR(rdb_load_skip_index->SetValue(false));
   VMSDK_RETURN_IF_ERROR(enable_vector_sharing->SetValue(true));
   VMSDK_RETURN_IF_ERROR(
